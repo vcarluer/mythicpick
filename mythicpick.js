@@ -131,7 +131,7 @@ var mythic = function() {};
         if (roll <= max) {
             result = "YES";
             if (roll <= (max / 5)) {
-                result += " Exceptionnal!";
+                result += " Exceptional!";
             }
         } else {
             result = "NO";
