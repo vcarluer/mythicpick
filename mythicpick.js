@@ -43,6 +43,10 @@ var mythic = function() {};
         var buttonScene = document.createElement("input");
         buttonScene.setAttribute("type", "button");
         buttonScene.setAttribute("value", "Modify the scene");
+        buttonScene.onclick = function () {
+            self.startModifyScene();  
+        };
+        
         this.divRoll.appendChild(buttonScene);
         this.divRoll.appendChild(document.createElement("br"));
         
@@ -55,6 +59,73 @@ var mythic = function() {};
     
     mythic.prototype.startRandomEvent = function () {
         this.startMode();
+        this.createResultHeader();
+        this.printRandomEvent();
+    };
+    
+    mythic.prototype.startModifyScene = function () {
+        var self = this;
+        this.startMode();
+        this.createParamHeader();
+        
+        this.createChaosParam();
+        
+        this.createParamContinue(function () { self.endModifyScene(); });
+    };
+    
+    mythic.prototype.endModifyScene = function () {
+        this.clearResult();
+        this.createResultHeader();
+        
+        var chaos = this.chaosSelect.options[this.chaosSelect.selectedIndex].value;
+        var sceneChange = Math.floor(Math.random()  * 9) + 1;
+        var result = "No change";
+        if (sceneChange <= chaos) {
+            if (sceneChange % 2 === 0) {
+                result = "INTERRUPT scene";
+            } else {
+                result = "ALTERED scene";
+            }
+        }
+        
+        this.addResult("Scene", result);
+        this.printRandomEvent();
+    };
+    
+    mythic.prototype.createParamContinue = function(callback) {
+        var p = document.createElement("p");
+        var button = document.createElement("input");
+        button.setAttribute("type", "button");
+        button.setAttribute("value", "Continue");
+        button.onclick = function() { callback(); };
+        p.appendChild(button);
+        this.divParam.appendChild(p);
+    };
+    
+    mythic.prototype.createChaosParam = function () {
+        var p = document.createElement("p");
+        var label = document.createElement("label");
+        label.innerHTML = "Chaos factor: ";
+        p.appendChild(label);
+        
+        if (!this.chaosSelect) {
+            this.chaosSelect = document.createElement("select");
+            
+            for (var i = 1; i <= 9; i++) {
+                var opt = document.createElement("option");
+                opt.text = i;
+                opt.value = i;
+                this.chaosSelect.options.add(opt);
+            }
+        }
+        
+        this.chaosSelect.selectedIndex = 4;
+        
+        p.appendChild(this.chaosSelect);
+        this.divParam.appendChild(p);
+    };
+    
+    mythic.prototype.printRandomEvent = function () {
         var focusIdx = this.getEventFocusIndex();
         var focus = this.eventFocus[focusIdx];
         
@@ -85,8 +156,6 @@ var mythic = function() {};
     mythic.prototype.startMode = function () {
       this.clearParams();
       this.clearResult();
-      
-      this.createResultHeader();
     };
     
     mythic.prototype.createResultHeader = function() {
