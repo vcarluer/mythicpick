@@ -20,6 +20,7 @@ var mythic = function() {};
         this.initEventFocus();
         this.initEventMeaningActions();
         this.initEventMeaningSubjects();
+        this.initFateChart();
         
         this.createDivRoll();
     };
@@ -53,6 +54,10 @@ var mythic = function() {};
         var buttonQuestion = document.createElement("input");
         buttonQuestion.setAttribute("type", "button");
         buttonQuestion.setAttribute("value", "Yes / No Question");
+        buttonQuestion.onclick = function () {
+            self.startQuestion();
+        };
+        
         this.divRoll.appendChild(buttonQuestion);
         this.divRoll.appendChild(document.createElement("br"));  
     };
@@ -67,9 +72,7 @@ var mythic = function() {};
         var self = this;
         this.startMode();
         this.createParamHeader();
-        
         this.createChaosParam();
-        
         this.createParamContinue(function () { self.endModifyScene(); });
     };
     
@@ -90,6 +93,89 @@ var mythic = function() {};
         
         this.addResult("Scene", result);
         this.printRandomEvent();
+    };
+    
+    mythic.prototype.startQuestion = function () {
+        var self = this;
+        this.startMode();
+        this.createParamHeader();
+        this.createChaosParam();
+        this.createQuestionParam();
+        this.createOddParam();
+        this.createParamContinue(function () { self.endQuestion(); });
+    };
+    
+    mythic.prototype.endQuestion = function () {
+        this.clearResult();
+        this.createResultHeader();
+        
+        var chaos = this.chaosSelect.options[this.chaosSelect.selectedIndex].value;
+        var odds = this.oddsSelect.options[this.oddsSelect.selectedIndex].value;
+        
+        var fateChartRoll = Math.floor(Math.random() * 100);
+        this.addResult("ROLL", fateChartRoll);
+        this.fateRoll(chaos, odds, fateChartRoll);
+        
+        var strRoll = fateChartRoll.toString();
+        if (strRoll.length > 1 && strRoll.charAt(0) === strRoll.charAt(1)) {
+            this.addResult("RANDOM event!!", strRoll);
+            this.printRandomEvent();
+        }
+    };
+    
+    mythic.prototype.fateRoll = function (chaos, odd, roll) {
+        var chaosIdx = chaos - 1;
+        var max = this.fateChart[chaosIdx][odd];
+        this.addResult("% success", max);
+        var result = "";
+        if (roll <= max) {
+            result = "YES";
+            if (roll <= (max / 5)) {
+                result += " Exceptionnal!";
+            }
+        } else {
+            result = "NO";
+            if (roll >= (100 - ((100 - max) /5))) {
+                result += " Exceptional!";
+            }
+        }
+        
+        this.addResult("Answer", result);
+    };
+    
+    mythic.prototype.createQuestionParam = function() {
+        var p = document.createElement("p");
+        var label = document.createElement("label");
+        label.innerHTML = "Ask a yes/no question: ";
+        p.appendChild(label);
+        var txt = document.createElement("input");
+        txt.setAttribute("value", "yes or no?")
+        p.appendChild(txt);
+        
+        this.divParam.appendChild(p);
+    };
+    
+    mythic.prototype.createOddParam = function () {
+        var p = document.createElement("p");
+        var label = document.createElement("label");
+        label.innerHTML = "Choose the odds: ";
+        p.appendChild(label);
+        
+        if (!this.oddsSelect) {
+            this.oddsSelect = document.createElement("select");
+            
+            for (var i = 0; i < this.fateOdds.length; i++) {
+                var opt = document.createElement("option");
+                opt.text = this.fateOdds[i];
+                opt.value = i;
+                this.oddsSelect.options.add(opt);
+            }
+        }
+        
+        this.oddsSelect.selectedIndex = 4;
+        
+        p.appendChild(this.oddsSelect);
+        this.divParam.appendChild(p);
     };
     
     mythic.prototype.createParamContinue = function(callback) {
@@ -435,6 +521,20 @@ var mythic = function() {};
         "Near sure thing",
         "A sure thing",
         "Has to be"];
+    };
+    
+    mythic.prototype.initFateChart = function () {
+      this.fateChart = [
+                        [ -20, 0, 5, 5, 10, 20, 25, 45, 50, 55, 80 ],
+                        [ 0, 5, 5, 10, 15, 25, 35, 50, 55, 65, 85 ],
+                        [ 0, 5, 10, 15, 25, 45, 50, 65, 75, 80, 90 ],
+                        [ 5, 10, 15, 20, 35, 50, 55, 75, 80, 85, 95 ],
+                        [ 5, 15, 25, 35, 50, 65, 75, 85, 90, 90, 95 ],
+                        [ 10, 25, 45, 50, 65, 80, 85, 90, 95, 95, 100 ],
+                        [ 15, 35, 50, 55, 75, 85, 90, 95, 95, 95, 100 ],
+                        [ 25, 50, 65, 75, 85, 90, 95, 95, 100, 110, 130 ],
+                        [ 50, 75, 85, 90, 95, 95, 100, 105, 115, 125, 145 ]
+                ];  
     };
 }());
 
